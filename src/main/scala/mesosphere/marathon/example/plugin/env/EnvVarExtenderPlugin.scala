@@ -18,10 +18,16 @@ class EnvVarExtenderPlugin extends RunSpecTaskProcessor with PluginConfiguration
     val envBuilder = builder.getCommand.getEnvironment.toBuilder
     envVariables.foreach {
       case (key, value) =>
-        val envVariable = Protos.Environment.Variable.newBuilder()
-        envVariable.setName(key)
-        envVariable.setValue(value)
-        envBuilder.addVariables(envVariable)
+        if (key == "token")
+          log.info("EnvVarExtenderPlugin token is set")
+        else if (key == "address")
+          log.info(s"EnvVarExtenderPlugin address is $value")
+        else {
+          val envVariable = Protos.Environment.Variable.newBuilder()
+          envVariable.setName(key)
+          envVariable.setValue(value)
+          envBuilder.addVariables(envVariable)
+        }
     }
     val commandBuilder = builder.getCommand.toBuilder
     commandBuilder.setEnvironment(envBuilder)
