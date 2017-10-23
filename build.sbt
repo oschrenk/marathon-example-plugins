@@ -8,9 +8,7 @@ resolvers += Resolver.sonatypeRepo("releases")
 
 resolvers += "Mesosphere Public Repo" at "http://downloads.mesosphere.io/maven"
 
-packAutoSettings
-
-packExcludeJars := Seq("scala-.*\\.jar")
+assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false)
 
 libraryDependencies ++= Seq(
   "mesosphere.marathon" %% "plugin-interface" % "1.3.5" % "provided",
