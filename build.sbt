@@ -13,5 +13,6 @@ assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeSca
 libraryDependencies ++= Seq(
   "mesosphere.marathon" %% "plugin-interface" % "1.3.5" % "provided",
   "org.slf4j" % "slf4j-api" % "1.7.12" % "provided",
-  "org.scalatest" %% "scalatest" % "2.2.6" % "test"
+  "org.scalatest" %% "scalatest" % "2.2.6" % "test",
+  "org.scalaj" %% "scalaj-http" % "2.3.0"
 )
