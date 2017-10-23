@@ -7,17 +7,8 @@ scalaVersion in Global := "2.11.11"
 
 resolvers += Resolver.sonatypeRepo("releases")
 
-lazy val plugins = project.in(file(".")).dependsOn(auth).dependsOn(javaauth).dependsOn(http).dependsOn(env).dependsOn(label)
-
-lazy val auth = project
-
-lazy val javaauth = project
-
-lazy val http = project
-
+lazy val plugins = project.in(file(".")).dependsOn(env)
 lazy val env = project
-
-lazy val label = project
 
 packAutoSettings
 
