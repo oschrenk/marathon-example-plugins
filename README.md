@@ -1,41 +1,63 @@
-# Example plugins for Marathon
+# Marathon Vault plugin
 
-## Marathon Plugin Dependency
+Most of the code is copied from [blackgold/marathon-vault-plugin](https://github.com/blackgold/marathon-vault-plugin) but as I couldn't get that plugin to work, I rebuilt it from scratch adding piece by piece and changed some things on the way.
 
-The Marathon plugin interface is needed to compile this package.
+## Main differences
 
-## Package
+- *NEW* error handling with logging if connecting to Vault or parsing the json from the result throws an exception
+- *NEW* sets the original environment variable with the secret value, instead if injecting the secret reference as a new one
+- *FIXED* json path to secret was different for my vault version, was just `\ "data"` but needed to be `"data" \ "value"`
+- *NEW* working tests
+- *CHANGE* Changed to sbt assembly
 
-To build the package run this command:
-`sbt clean pack`
-This will compile and package all plugins.
-The resulting jars with all dependencies are put into the directory: `target/pack/lib`.
-This directory can be used directly as plugin directory for Marathon.
+## Installation
 
-# Using a Plugin
-1. Run `sbt clean pack` in the repository's root directory.
-2. Locate the Plugin configuration file (look at the Plugin's README.md
-   for a hint)).
-3. Start Marathon with the following flags: `--plugin_dir target/pack/lib --plugin_conf <path_to_the_plugin_config_file>`
+Copy jar
 
-## Plugins
+```
+sbt assembly
+scp target/scala-2.11/env-plugin-assembly-1.0.jar dcos:/path/to/marathon/libs
+```
 
-### auth
+Edit the `plugin-conf.json.sample` and add the right token, then copy
 
-Example Authentication and Authorization Plugin (Scala based).
-See [README.md](https://github.com/mesosphere/marathon-example-plugins/blob/master/auth/README.md) in the auth plugin directory.
+```
+sbt assembly
+scp plugin-conf.json.sample dcos:/path/to/marathon/conf
+```
 
-### javaauth
+Enable `secrets` feature and set the right directories in the service config
 
-Example Authentication and Authorization Plugin (Java based).
-See [README.md](https://github.com/mesosphere/marathon-example-plugins/blob/master/javaauth/README.md) in the javaauth directory.
+```
+$ ssh dcos
+user@dcos-master$ cd /opt/mesosphere/packages/marathon-*
+user@dcos-master$ vim dcos.target.wants_master/dcos-marathon.service
+```
 
-### env
+like so (full features set depdends on your needs)
 
-Example Environment Variables Configuration.
-See [README.md](https://github.com/mesosphere/marathon-example-plugins/blob/master/env/README.md) in the env plugin directory.
+```
+    --plugin_dir="/path/to/marathon/libs" \
+    --plugin_conf="/path/to/marathon/conf/plugin-conf.json" \
+    --enable_features "secrets,vips,task_killing,external_volumes" \
+```
 
-### label
+then reload and restart marathon
 
-Example validation of runspec for specific labels.
-See [README.md](https://github.com/mesosphere/marathon-example-plugins/blob/master/label/README.md) in the label plugin directory.
+```
+systemctl daemon-reload
+systemctl restart dcos-marathon
+```
+
+## Resources
+
+For me it was helpful to have a running Vault installation and then interact with the server to the JSON response
+
+```
+curl --insecure \
+    -H "X-Vault-Token: b2d5953d-6f0d-c44d-e2eb-9b62d2371db8" \
+    -X GET \
+    https://vault.marathon.mesos:8200/v1/secret/hello
+{"request_id":"79a6fc29-4191-8f5e-f088-ceae7c6abe69","lease_id":"","renewable":false,"lease_duration":2764800,"data":{"value":"world"},"wrap_info":null,"warnings":null,"auth":null}
+```
+
