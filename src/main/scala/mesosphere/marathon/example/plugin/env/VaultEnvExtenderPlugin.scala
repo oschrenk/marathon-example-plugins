@@ -11,13 +11,13 @@ import play.api.libs.json.Json
 
 import scalaj.http.{Http, HttpOptions, HttpResponse}
 
-class EnvVarExtenderPlugin extends RunSpecTaskProcessor with PluginConfiguration {
+class VaultEnvExtenderPlugin extends RunSpecTaskProcessor with PluginConfiguration {
   private[env] var envVariables = Map.empty[String, String]
   private val log = LoggerFactory.getLogger(getClass)
 
   def initialize(marathonInfo: Map[String, Any], configuration: play.api.libs.json.JsObject): Unit = {
     envVariables = (configuration \ "env").as[Map[String, String]]
-    log.info("EnvVarExtenderPlugin initialized")
+    log.info("VaultEnvExtenderPlugin initialized")
   }
 
   def apply(runSpec: mesosphere.marathon.plugin.RunSpec, builder: org.apache.mesos.Protos.TaskInfo.Builder): Unit = {
@@ -25,17 +25,17 @@ class EnvVarExtenderPlugin extends RunSpecTaskProcessor with PluginConfiguration
     val maybeVaultAddr = envVariables.get("address")
     val maybeToken = envVariables.get("token")
 
-    log.info("EnvVarExtenderPlugin applied")
+    log.info("VaultEnvExtenderPlugin applied")
 
     for {
       vaultAddr <- maybeVaultAddr
       token <- maybeToken
     } yield {
-      log.debug(s"EnvVarExtenderPlugin address: $vaultAddr")
+      log.debug(s"VaultEnvExtenderPlugin address: $vaultAddr")
       runSpec.secrets.foreach {
         case(key, secret) =>
           val url = makeVaultUrl(vaultAddr, s"v1/secret/${secret.source}")
-          log.debug(s"EnvVarExtenderPlugin Connecting to $url")
+          log.debug(s"VaultEnvExtenderPlugin Connecting to $url")
 
           val resp = fetchSecrets(url, token)
           if(resp.is2xx) {
@@ -47,8 +47,8 @@ class EnvVarExtenderPlugin extends RunSpecTaskProcessor with PluginConfiguration
                 envVariable.setName(orgKey)
                 envVariable.setValue(secretval)
                 envBuilder.addVariables(envVariable)
-                log.debug("EnvVarExtenderPlugin added envVariable")
-              case None => log.error("EnvVarExtenderPlugin No original key found")
+                log.debug("VaultEnvExtenderPlugin added envVariable")
+              case None => log.error("VaultEnvExtenderPlugin No original key found")
             }
 
           } else {

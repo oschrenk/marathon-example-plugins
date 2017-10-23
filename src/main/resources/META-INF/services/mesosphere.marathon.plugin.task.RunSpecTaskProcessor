@@ -1,1 +1,1 @@
-mesosphere.marathon.example.plugin.env.EnvVarExtenderPlugin
+mesosphere.marathon.example.plugin.env.VaultEnvExtenderPlugin

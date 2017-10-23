@@ -8,7 +8,7 @@ import play.api.libs.json.{JsObject, Json}
 import scalaj.http.HttpResponse
 
 
-class EnvVarExtenderPluginTest extends FlatSpec with Matchers {
+class VaultEnvExtenderPluginTest extends FlatSpec with Matchers {
   "Initialization with a configuration" should "work" in {
     val f = new Fixture
     val map = Map("token" -> "b2d0959d-6d0d-c44d-a2eb-9d62d2778db0", "address" -> "https://vault.marathon.mesos:8200/")
@@ -51,7 +51,7 @@ class EnvVarExtenderPluginTest extends FlatSpec with Matchers {
         |}
       """.stripMargin
     private val config = Json.parse(json).as[JsObject]
-    val envVarExtender: EnvVarExtenderPlugin = new EnvVarExtenderPlugin() {
+    val envVarExtender: VaultEnvExtenderPlugin = new VaultEnvExtenderPlugin() {
       override def fetchSecrets(url: String, token: String): HttpResponse[String] = {
         if (url.endsWith("hello")) {
           val json =
