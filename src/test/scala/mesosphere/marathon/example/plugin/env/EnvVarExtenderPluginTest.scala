@@ -1,6 +1,6 @@
 package mesosphere.marathon.example.plugin.env
 
-import mesosphere.marathon.plugin.{EnvVarValue, PathId, RunSpec, Secret}
+import mesosphere.marathon.plugin._
 import org.apache.mesos.Protos
 import org.scalatest.{FlatSpec, Matchers}
 import play.api.libs.json.{JsObject, Json}
@@ -20,10 +20,16 @@ class EnvVarExtenderPluginTest extends FlatSpec with Matchers {
     val mySecret: Secret = new Secret {
       override def source = "hello"
     }
+    val envNormal = new EnvVarString {
+      override def value = "somevalue"
+    }
+    val envWithSecret = new EnvVarSecretRef {
+      override def secret = "secret0"
+    }
     val runSpec: RunSpec = new RunSpec {
       override def acceptedResourceRoles: Option[Set[String]] = None
-      override def env: Map[String, EnvVarValue] = Map()
-      override def secrets: Map[String, Secret] = Map("hello" -> mySecret)
+      override def env: Map[String, EnvVarValue] = Map("NORMAL_ENV" -> envNormal, "DATABASE_PW" -> envWithSecret)
+      override def secrets: Map[String, Secret] = Map("secret0" -> mySecret)
       override def labels: Map[String, String] = Map()
       override def id: PathId = ???
       override def user: Option[String] = None
@@ -31,7 +37,7 @@ class EnvVarExtenderPluginTest extends FlatSpec with Matchers {
     val builder = Protos.TaskInfo.newBuilder()
     f.envVarExtender(runSpec, builder)
     val secretEnv = builder.getCommand.getEnvironment.getVariablesList.get(0)
-    secretEnv.getName should be("hello")
+    secretEnv.getName should be("DATABASE_PW")
     secretEnv.getValue should be("world")
   }
 

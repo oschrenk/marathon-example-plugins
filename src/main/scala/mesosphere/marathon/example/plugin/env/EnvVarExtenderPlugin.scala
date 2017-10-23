@@ -6,6 +6,7 @@ import org.apache.mesos.Protos
 import org.slf4j.LoggerFactory
 import java.net.URL
 
+import mesosphere.marathon.plugin.{EnvVarSecretRef, EnvVarValue}
 import play.api.libs.json.Json
 
 import scalaj.http.{Http, HttpOptions, HttpResponse}
@@ -41,10 +42,15 @@ class EnvVarExtenderPlugin extends RunSpecTaskProcessor with PluginConfiguration
             val jsonresp = Json.parse(resp.body)
             val secretval = (jsonresp \ "data" \ "value").as[String]
             val envVariable = Protos.Environment.Variable.newBuilder()
-            envVariable.setName(key)
-            envVariable.setValue(secretval)
-            envBuilder.addVariables(envVariable)
-            log.debug("EnvVarExtenderPlugin added envVariable")
+            findEnvVar(runSpec.env, key) match {
+              case Some(orgKey) =>
+                envVariable.setName(orgKey)
+                envVariable.setValue(secretval)
+                envBuilder.addVariables(envVariable)
+                log.debug("EnvVarExtenderPlugin added envVariable")
+              case None => log.error("EnvVarExtenderPlugin No original key found")
+            }
+
           } else {
             log.error(s"got unexpected response from vault $resp")
           }
@@ -67,6 +73,18 @@ class EnvVarExtenderPlugin extends RunSpecTaskProcessor with PluginConfiguration
 
   def fetchSecrets(url: String, token: String): HttpResponse[String] = {
     Http(url).header("X-Vault-Token",token).option(HttpOptions.allowUnsafeSSL).asString
+  }
+
+  def findEnvVar(env: Map[String, EnvVarValue], secret_ref: String): Option[String] = {
+    env.find {
+      case (_, secret: EnvVarSecretRef)  => {
+        println(env)
+        println(secret.secret)
+        secret.secret == secret_ref
+      }
+      case _ => false
+    }.map(_._1)
+
   }
 
 }
