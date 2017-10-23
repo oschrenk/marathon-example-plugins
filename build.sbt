@@ -14,6 +14,6 @@ packExcludeJars := Seq("scala-.*\\.jar")
 
 libraryDependencies ++= Seq(
   "mesosphere.marathon" %% "plugin-interface" % "1.3.5" % "provided",
-  "log4j" % "log4j" % "1.2.17" % "provided",
+  "org.slf4j" % "slf4j-api" % "1.7.12" % "provided",
   "org.scalatest" %% "scalatest" % "2.2.6" % "test"
 )
