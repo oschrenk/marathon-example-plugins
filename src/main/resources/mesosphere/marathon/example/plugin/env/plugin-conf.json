@@ -5,8 +5,6 @@
       "implementation": "mesosphere.marathon.example.plugin.env.EnvVarExtenderPlugin",
       "configuration": {
         "env": {
-            "foo": "bar",
-            "key": "value",
             "token": "xxxx",
             "address": "https://vault.marathon.mesos:8200/"
         }
