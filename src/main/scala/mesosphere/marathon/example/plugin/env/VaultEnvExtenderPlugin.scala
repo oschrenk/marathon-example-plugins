@@ -34,13 +34,14 @@ class VaultEnvExtenderPlugin extends RunSpecTaskProcessor with PluginConfigurati
       log.debug(s"VaultEnvExtenderPlugin address: $vaultAddr")
       runSpec.secrets.foreach {
         case(key, secret) =>
-          val url = makeVaultUrl(vaultAddr, s"v1/secret/${secret.source}")
+          val Array(vaultPath, vaultKey) = secret.source.split("\\.")
+          val url = makeVaultUrl(vaultAddr, s"v1/secret/$vaultPath")
           log.debug(s"VaultEnvExtenderPlugin Connecting to $url")
 
           val resp = fetchSecrets(url, token)
           if(resp.is2xx) {
             val jsonresp = Json.parse(resp.body)
-            val secretval = (jsonresp \ "data" \ "value").as[String]
+            val secretval = (jsonresp \ "data" \ vaultKey).as[String]
             val envVariable = Protos.Environment.Variable.newBuilder()
             findEnvVar(runSpec.env, key) match {
               case Some(orgKey) =>

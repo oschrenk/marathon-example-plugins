@@ -18,7 +18,7 @@ class VaultEnvExtenderPluginTest extends FlatSpec with Matchers {
   "Applying the plugin" should "work" in {
     val f = new Fixture
     val mySecret: Secret = new Secret {
-      override def source = "hello"
+      override def source = "postgres.password"
     }
     val envNormal = new EnvVarString {
       override def value = "somevalue"
@@ -38,7 +38,7 @@ class VaultEnvExtenderPluginTest extends FlatSpec with Matchers {
     f.envVarExtender(runSpec, builder)
     val secretEnv = builder.getCommand.getEnvironment.getVariablesList.get(0)
     secretEnv.getName should be("DATABASE_PW")
-    secretEnv.getValue should be("world")
+    secretEnv.getValue should be("123abc")
   }
 
   class Fixture {
@@ -53,9 +53,9 @@ class VaultEnvExtenderPluginTest extends FlatSpec with Matchers {
     private val config = Json.parse(json).as[JsObject]
     val envVarExtender: VaultEnvExtenderPlugin = new VaultEnvExtenderPlugin() {
       override def fetchSecrets(url: String, token: String): HttpResponse[String] = {
-        if (url.endsWith("hello")) {
+        if (url.endsWith("postgres")) {
           val json =
-            """{"request_id":"79a6fc29-4191-8f5e-f088-ceae7c6abe69","lease_id":"","renewable":false,"lease_duration":2764800,"data":{"value":"world"},"wrap_info":null,"warnings":null,"auth":null}""".stripMargin
+            """{"request_id":"79a6fc29-4191-8f5e-f088-ceae7c6abe69","lease_id":"","renewable":false,"lease_duration":2764800,"data":{"password":"123abc"},"wrap_info":null,"warnings":null,"auth":null}""".stripMargin
           HttpResponse(json, 200, Map())
         } else {
           throw new IllegalArgumentException("Wrong token")
